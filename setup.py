@@ -19,11 +19,12 @@ safe_random=os.urandom(24).hex()
 safe_root_random=os.urandom(32).hex()
 database_name= "db"
 database_username="db"
+database_service_name="database-mysql"
 
 def render(safe_password: str,safe_root_password: str) -> str:
     return f"""version: "3.0"
 services:
-  database:
+  {database_service_name}:
     image: mysql:8.0.29
     restart: always
     environment:
@@ -34,7 +35,19 @@ services:
     volumes:
       - ./db-data:/var/lib/mysql
     ports:
-      - 0.0.0.0:3306:3306"""
+      #- 3306:3306
+      - 0.0.0.0:3306:3306
+
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      - PMA_HOST={database_service_name}
+      - PMA_USER={database_username}
+      - PMA_PASSWORD={safe_password}
+      - PMA_ARBITRARY=1"""
 
 with open("docker-compose.yaml","w",encoding='utf-8') as file:
     file.write(render(safe_random,safe_root_random))
